@@ -79,7 +79,7 @@ cat /mnt/etc/fstab
 echo
 #
 # Create chroot script in /mnt
-cat << 'CHROOT' >> /mnt/chroot
+cat << EOT >> /mnt/chroot
 #!/bin/bash
 #
 # Check if script is run as root
@@ -153,7 +153,7 @@ sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
 #
 # Exit chroot
 exit
-CHROOT
+EOT
 #
 # Make /mnt/chroot executable
 chmod +x /mnt/chroot
