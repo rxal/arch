@@ -79,7 +79,7 @@ cat /mnt/etc/fstab
 echo
 #
 # Create chroot script in /mnt
-cat << CHROOT >> /mnt/chroot
+cat <<CHROOT>> /mnt/chroot
 #!/bin/bash
 #
 # Check if script is run as root
