@@ -79,7 +79,8 @@ cat /mnt/etc/fstab
 echo
 #
 # Create chroot script in /mnt
-echo "#!/bin/bash
+cat >>/mnt/chroot<< CHROOT
+#!/bin/bash
 #
 # Check if script is run as root
 if [[ $EUID -ne 0 ]]; then
@@ -151,7 +152,8 @@ echo "Uncommenting the wheel group line."
 sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
 #
 # Exit chroot
-exit" >> /mnt/chroot
+exit
+CHROOT
 #
 # Make /mnt/chroot executable
 chmod +x /mnt/chroot
