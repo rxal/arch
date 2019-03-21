@@ -1,0 +1,118 @@
+#!/bin/bash
+# Connect to wifi
+nmcli device wifi list
+echo
+read -p "Enter your wifi SSID: " ssid
+read -p "Enter your wifi password: " wifipass
+nmcli device wifi connect $ssid password $wifipass
+echo
+# Update system
+sudo pacman -Syu
+# Install packages for gnome desktop environment and other useful stuff
+# Package Info:-----------------|Development Tools|Gnome Requirements               |Terminal|Fast Updated Mirrors|Github|Retrieving Files|Extract|Terminal OS Info|NTFS Filesystem Support|Disk-Partition Utility|
+yes "" | sudo pacman -S --needed base-devel        xorg-server xorg-xinit xorg-xprop bash     reflector            git    wget             unzip   neofetch         ntfs-3g                 gparted
+# Package Info:-----------------|Gnome      |Display Manager|Terminal      |System Settings     |System Monitor      |Power Management   |Wallpapers       |Tweak Tool      |Screenshot      |View Images|Default Home Directories|Disk-Partition Utility|Gnome Extensions  |
+yes "" | sudo pacman -S --needed gnome-shell gdm nautilus    gnome-terminal gnome-control-center gnome-system-monitor gnome-power-manager gnome-backgrounds gnome-tweak-tool gnome-screenshot eog         xdg-user-dirs            gnome-disk-utility     chrome-gnome-shell
+# Package Info:-----------------|Web Browser |Monospace Font|Touchpad Gestures|Dock |Dark-Side Theme               |Terminal Directory View|Unknown            |
+yes "" | sudo pacman -S --needed chromium     ttf-hack       xdotool wmctrl    plank gtk-engine-murrine gtk-engines tree                    curl dbus perl less
+# Install pikaur: an aur helper
+git clone https://aur.archlinux.org/pikaur.git
+cd pikaur
+makepkg -fsri
+cd /home/$USER
+# Package Info:Arch Package Installer|Nautilus Root |Touchpad Gestures|Theme Changer|Web Browser Plugin|Clean Font    |GDM Editor     |Icon Theme               |Cursor Theme     |
+pikaur -S      pamac-aur              nautilus-admin libinput-gestures automathemely chromium-widevine  ttf-clear-sans gdm3setup-utils # la-capitaine-icon-theme capitaine-cursors
+echo
+# Install the gnome shell extension installer
+cd /home/$USER
+wget -O gnome-shell-extension-installer "https://github.com/brunelli/gnome-shell-extension-installer/raw/master/gnome-shell-extension-installer"
+chmod +x gnome-shell-extension-installer
+sudo mv gnome-shell-extension-installer /usr/bin/
+# Install some useful gnome extensions
+gnome-shell-extension-installer 1328 1128 277 36 1305 1303 118 1236 258 1297 800 826 1497 19 21 
+# Hide Top Bar: 545 (not fully stable) # TopIcons Plus: 1031 (not maintained | last checked 23/02/2019) # Caffeine: 517 (not maintained | last checked 23/02/2019) # Bottom panel: 949 (not fully stable) # Enable gnome display manager
+echo "Enabling gdm service..."
+sudo systemctl enable gdm
+echo
+# Enable the bluetooth service
+echo "Enabling bluetooth service..."
+sudo systemctl enable bluetooth
+echo
+# Disable wayland
+sudo sed -i '/WaylandEnable=false/s/^#//' /etc/gdm/custom.conf
+# Set custom touchpad gestures
+cp /etc/libinput-gestures.conf ~/.config/libinput-gestures.conf
+sed -i '50s/.*/gesture swipe up 3 _internal ws_up/' ~/.config/libinput-gestures.conf
+sed -i '63s/.*/gesture swipe down 3 _internal ws_down/' ~/.config/libinput-gestures.conf
+sed -i '67s/.*/gesture swipe left 3 xdotool key alt+Right/' ~/.config/libinput-gestures.conf
+sed -i '70s/.*/gesture swipe right 3 xdotool key alt+Left/' ~/.config/libinput-gestures.conf
+sed -i '118s/.*/gesture swipe left_up 3 xdotool key super+a/' ~/.config/libinput-gestures.conf
+sed -i '119s/.*/gesture swipe left_down 3 xdotool key super+s/' ~/.config/libinput-gestures.conf
+sed -i '132s/.*/gesture pinch clockwise xdotool key super+Right/' ~/.config/libinput-gestures.conf
+sed -i '133s/.*/gesture pinch anticlockwise xdotool key super+Left/' ~/.config/libinput-gestures.conf
+# Set apps to autostart
+sudo gpasswd -a $USER input
+libinput-gestures-setup autostart
+cp /usr/share/applications/plank.desktop /home/$USER/.config/autostart
+# Set plank theme
+sudo cp /usr/share/plank/themes/Default/dock.theme /usr/share/plank/themes/Default/dockbackup.theme && sudo cp /usr/share/plank/themes/Transparent/dock.theme /usr/share/plank/themes/Default/dock.theme
+# Set desktop and lock screen wallpaper to mojave
+sudo rm -r /usr/share/backgrounds/gnome
+sudo rm -r /usr/share/gnome-background-properties
+# ^
+sudo git clone https://github.com/archbyte/mojave /usr/share/backgrounds/gnome
+sudo rm -r /usr/share/backgrounds/gnome/.git
+# ^
+sudo mkdir /usr/share/gnome-background-properties
+sudo mv /usr/share/backgrounds/gnome/gnome-backgrounds.xml /usr/share/gnome-background-properties
+# Install some shell themes
+sudo git clone https://github.com/EliverLara/Ant-Nebula --branch slim /usr/share/themes/Ant-Nebula
+sudo git clone https://github.com/paullinuxthemer/Dark-Side /usr/share/themes/Dark-Side
+# Keep the avahi apps from showing up in the apps view
+sudo ln -sf /dev/null /etc/systemd/system/avahi-daemon.service
+sudo ln -sf /dev/null /etc/systemd/system/avahi-daemon.socket
+sudo ln -sf /dev/null /etc/systemd/system/dbus-org.freedesktop.Avahi.service
+sudo bash -c "echo 'NoDisplay=true' >> /usr/share/applications/avahi-discover.desktop"
+sudo bash -c "echo 'NoDisplay=true' >> /usr/share/applications/bssh.desktop"
+sudo bash -c "echo 'NoDisplay=true' >> /usr/share/applications/bvnc.desktop"
+sudo update-desktop-database
+# Update system clock | Time sync
+timedatectl set-ntp true
+# Enable tap to click
+gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
+# Gnome post script for some customization
+cat << EOT >> /home/$USER/postinstall
+#!/bin/bash
+echo "Press 'Enter' to continue"
+gnome-disks
+read
+# Edit makepkg.conf to stop recompression and make installing software faster
+sudo sed -i '144s/.xz//' /etc/makepkg.conf
+# Install grub theme
+wget -O - https://github.com/shvchk/poly-light/raw/master/install.sh | bash
+# Change grub timeout to 3
+sudo sed -i '4s/0/3/' /etc/default/grub
+# Generate grub configuration file
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+echo
+# Remove installation files & pikaur folder
+sudo rm /home/$USER/gnome
+sudo rm /home/$USER/postinstall
+sudo rm /home/$USER/.config/autostart/postinstallscript.desktop
+sudo rm -r /home/$USER/pikaur
+# Reboot
+sudo reboot
+EOT
+chmod +x /home/$USER/postinstall
+# Script to make the post script run after reboot
+cat << EOT >> /home/$USER/.config/autostart/postinstallscript.desktop
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=postinstallscript
+Exec=/home/$USER/postinstall
+Terminal=true
+EOT
+chmod +x /home/$USER/.config/autostart/postinstallscript.desktop
+# Reboot
+sudo reboot
