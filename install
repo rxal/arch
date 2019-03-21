@@ -143,6 +143,7 @@ cp /root/arch/chroot /mnt
 rm /root/arch/chroot
 # Run the chroot script in the new system through chroot 
 arch-chroot /mnt ./chroot
+arch-chroot /mnt rm chroot
 # Move remaining installation files to user home directory
 mkdir /root/tempfolder
 cp -a /root/arch/. /root/tempfolder
