@@ -134,6 +134,8 @@ sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
 exit
 EOT
 #-------------------------------------------------------------------
+# Remove extra files
+rm /root/arch/LICENSE /root/arch/README.md
 # Make remaining installation files executable
 chmod +x /root/arch/*
 # Move chroot script to /mnt
@@ -144,7 +146,7 @@ arch-chroot /mnt ./chroot
 # Move remaining installation files to user home directory
 mkdir /root/tempfolder
 cp -a /root/arch/. /root/tempfolder
-rm /root/tempfolder/install /root/tempfolder/README.md
+rm /root/tempfolder/install
 cp -a /root/tempfolder/. /mnt/home/$username
 rm -r /root/arch /root/tempfolder
 # Unmount and reboot
