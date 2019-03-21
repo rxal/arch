@@ -12,7 +12,7 @@ reflector --verbose -l 100 -p http -p https --sort rate --save /etc/pacman.d/mir
 
 git clone https://github.com/rxal/arch
 
-/bin/bash arch/install
+/bin/bash arch/base
 
 **Login by entering your username and password.**
 
