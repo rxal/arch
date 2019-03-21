@@ -9,12 +9,8 @@ echo
 # Update system
 sudo pacman -Syu
 # Install packages for gnome desktop environment and other useful stuff
-# Package Info:-----------------|Development Tools|Gnome Requirements               |Terminal|Fast Updated Mirrors|Github|Retrieving Files|Extract|Terminal OS Info|NTFS Filesystem Support|Disk-Partition Utility|
-yes "" | sudo pacman -S --needed base-devel        xorg-server xorg-xinit xorg-xprop bash     reflector            git    wget             unzip   neofetch         ntfs-3g                 gparted
-# Package Info:-----------------|Gnome      |Display Manager|Terminal      |System Settings     |System Monitor      |Power Management   |Wallpapers       |Tweak Tool      |Screenshot      |View Images|Default Home Directories|Disk-Partition Utility|Gnome Extensions  |
-yes "" | sudo pacman -S --needed gnome-shell gdm nautilus    gnome-terminal gnome-control-center gnome-system-monitor gnome-power-manager gnome-backgrounds gnome-tweak-tool gnome-screenshot eog         xdg-user-dirs            gnome-disk-utility     chrome-gnome-shell
-# Package Info:-----------------|Web Browser |Monospace Font|Touchpad Gestures|Dock |Dark-Side Theme               |Terminal Directory View|Unknown            |
-yes "" | sudo pacman -S --needed chromium     ttf-hack       xdotool wmctrl    plank gtk-engine-murrine gtk-engines tree                    curl dbus perl less
+# Package Info:--------|Development Tools|Gnome Requirements               |Terminal|Fast Updated Mirrors|Github|Retrieving Files|Extract|Terminal OS Info|NTFS Filesystem Support|Disk-Partition Utility|Gnome      |Display Manager|Terminal      |System Settings     |System Monitor      |Power Management   |Wallpapers       |Tweak Tool      |Screenshot      |View Images|Default Home Directories|Disk-Partition Utility|Gnome Extensions  |Web Browser |Monospace Font|Touchpad Gestures|Dock |Dark-Side Theme               |Terminal Directory View|Unknown            |
+sudo pacman -S --needed base-devel        xorg-server xorg-xinit xorg-xprop bash     reflector            git    wget             unzip   neofetch         ntfs-3g                 gparted                gnome-shell gdm nautilus    gnome-terminal gnome-control-center gnome-system-monitor gnome-power-manager gnome-backgrounds gnome-tweak-tool gnome-screenshot eog         xdg-user-dirs            gnome-disk-utility     chrome-gnome-shell chromium     ttf-hack       xdotool wmctrl    plank gtk-engine-murrine gtk-engines tree                    curl dbus perl less
 # Install pikaur: an aur helper
 git clone https://aur.archlinux.org/pikaur.git
 cd pikaur
