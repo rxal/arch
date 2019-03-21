@@ -1,0 +1,171 @@
+#!/bin/bash
+
+# Check if script is run as root
+if [[ $EUID -ne 0 ]]; then
+	echo "This script must be run as root." 2>&1
+	exit 1
+fi
+
+# Check if system is booted in efi mode
+ls /sys/firmware/efi/efivars
+echo
+echo "Press 'Ctrl+c' to exit OR 'Enter' to continue"
+read
+
+# Update system clock
+timedatectl set-ntp true
+
+# List partitions
+fdisk -l
+echo
+lsblk
+echo
+
+# Edit partitions
+echo "cfdisk"
+read
+cfdisk
+
+# List partitions
+fdisk -l
+echo
+lsblk
+echo
+
+# Confirm the disk is correctly partitioned
+echo
+echo "Press 'Ctrl+c' to exit OR 'Enter' to continue"
+read
+
+# Input locations of efi partition and root partition
+read -p "efipartition (/dev/sdax) = " efipartition
+echo
+read -p "ospartition (/dev/sdax) = " ospartition
+echo
+
+# Input bootloader id | hostname | username
+read -p "Enter your preferred bootloader-id: " bootloaderid
+echo
+read -p "Enter your hostname: " hostname
+echo
+read -p "Enter your preferred username: " username
+echo
+
+# Format efi partition as fat32
+echo mkfs.fat -F32 $efipartition
+mkfs.fat -F32 $efipartition
+echo
+
+# Format root partition as ext4
+echo mkfs.ext4 $ospartition
+mkfs.ext4 $ospartition
+echo
+
+# Mount root partition to /mnt
+echo mount $ospartition /mnt
+mount $ospartition /mnt
+echo
+
+# Install the base and base-devel package groups using pacstrap
+echo "pacstrap /mnt base base-devel"
+pacstrap /mnt base base-devel
+echo
+
+# Generate fstab
+echo "Generate /mnt/etc/fstab"
+genfstab -U /mnt >> /mnt/etc/fstab
+echo
+cat /mnt/etc/fstab
+echo
+
+# Create chroot script in /mnt
+cat << CHROOT >> /mnt/chroot
+#!/bin/bash
+
+# Check if script is run as root
+if [[ $EUID -ne 0 ]]; then
+	echo "This script must be run as root." 2>&1
+	exit 1
+fi
+
+# Set timezone to US-Pacific
+ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
+
+# Generate /etc/adjtime
+hwclock --systohc --utc
+
+# Uncomment/Set locale to en_US.UTF-8 UTF-8 for American-English
+sed -i '/#en_US.UTF-8 UTF-8/s/^#//g' /etc/locale.gen
+
+# Set the LANG variable
+echo "LANG=en_US.UTF-8"  > /etc/locale.conf
+
+# Generate locale
+locale-gen
+echo
+
+# Set hostname
+echo $hostname > /etc/hostname
+
+# Input root password
+echo "Enter root password."
+passwd
+echo
+
+# Create /boot/efi directory
+mkdir /boot/efi
+
+# Mount efi partition to the /boot/efi directory
+mount $efipartition /boot/efi
+echo
+
+# Install some required packages for booting and stuff
+pacman -S --needed intel-ucode grub efibootmgr sudo networkmanager os-prober wget
+echo
+
+# Install grub to /boot/efi
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=$bootloaderid
+echo
+
+# Change grub timeout to 3
+sudo sed -i '4s/5/0/' /etc/default/grub
+
+# Generate grub config file
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+echo
+
+# Enable network manager
+systemctl enable NetworkManager
+echo
+
+# Create user
+useradd -m -g users -G wheel -s /bin/bash $username
+echo
+
+# Input user password
+echo "Enter user password"
+passwd $username
+echo
+
+# Give admin priviliges to user
+echo "Uncommenting the wheel group line."
+sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
+
+# Exit chroot
+exit
+CHROOT
+
+# Make /mnt/chroot executable
+chmod +x /mnt/chroot
+
+# Run /mnt/chroot
+arch-chroot /mnt ./chroot
+
+# Unmount all (some errors expected)
+umount -a
+
+# Remove github folder
+rm -r /root/arch
+
+# Reboot
+reboot
