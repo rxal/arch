@@ -73,50 +73,80 @@ echo "Generate fstab."
 genfstab -U /mnt >> /mnt/etc/fstab
 echo
 cat /mnt/etc/fstab
-# Enter input into chroot file
+#-------------------------------------------------------------------
+# Create chroot file
+#-------------------------------------------------------------------
 cat << EOT >> /root/arch/chroot
-stuff to put in chroot file
+#!/bin/bash
+# Check if script is being run as root
+if [[ $EUID -ne 0 ]]; then
+    echo "Run this script as root." 2>&1
+    exit 1
+fi
+# Set the timezone to US-Pacific
+ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
+# Generate /etc/adjtime
+hwclock --systohc --utc
+# Uncomment locale
+echo "Setting locale: en_US.UTF-8 UTF-8 for American-English."
+sed -i '/#en_US.UTF-8 UTF-8/s/^#//g' /etc/locale.gen
+echo
+# Set the LANG variable
+echo "LANG=en_US.UTF-8"  > /etc/locale.conf
+# Generate locale
+locale-gen
+echo
+# Set hostname
+echo $hostname > /etc/hostname
+# Input root password
+echo "Enter root password."
+passwd
+echo
+# Create /boot/efi directory
+mkdir /boot/efi
+# Mount efi partition to the /boot/efi directory
+mount $efipartition /boot/efi
+echo
+# Install some required packages for booting and stuff
+pacman -S --needed intel-ucode grub efibootmgr sudo networkmanager os-prober wget
+echo
+# Install grub to /boot/efi
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=$bootloaderid
+echo
+# Change grub timeout to 3
+sudo sed -i '4s/5/0/' /etc/default/grub
+# Generate grub config file
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+echo
+# Enable network manager
+systemctl enable NetworkManager
+# Create user
+useradd -m -g users -G wheel -s /bin/bash $username
+echo
+# Input user password
+echo Enter your user password.
+passwd $username
+echo
+# Set admin priviliges
+echo "Uncommenting the wheel group line."
+sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
+# Exit chroot
+exit
 EOT
-#
-sudo sed -i "25s@inputhostname@$hostname@" /root/arch/chroot
-sudo sed -i "33s@inputefipartition@$efipartition@" /root/arch/chroot
-sudo sed -i "39s@inputbootloaderid@$bootloaderid@" /root/arch/chroot
-sudo sed -i "49s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "53s@inputusername@$username@" /root/arch/chroot
-#
-sudo sed -i "59s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "60s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "61s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "62s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "63s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "64s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "65s@inputusername@$username@" /root/arch/chroot
-sudo sed -i "66s@inputusername@$username@" /root/arch/chroot
+#-------------------------------------------------------------------
 # Make remaining installation files executable
 chmod +x /root/arch/*
-#chmod +x /root/arch/chroot
-#chmod +x /root/arch/gnome1
-#chmod +x /root/arch/gnome2
-#chmod +x /root/arch/kde1
-#chmod +x /root/arch/kde2
-#chmod +x /root/arch/i3xfce1
-#chmod +x /root/arch/i3xfce2
-#chmod +x /root/arch/budgie1
-#chmod +x /root/arch/budgie2
-# Copy remaining installation files to /mnt
-cp -a /root/arch/. /mnt
-#cp /root/install/chroot /mnt
-#cp /root/install/gnome1 /mnt
-#cp /root/install/gnome2 /mnt
-#cp /root/install/kde1 /mnt
-#cp /root/install/kde2 /mnt
-#cp /root/install/i3xfce1 /mnt
-#cp /root/install/i3xfce2 /mnt
-#cp /root/install/budgie1 /mnt
-#cp /root/install/budgie2 /mnt
-rm -r /root/arch
+# Move chroot script to /mnt
+cp /root/arch/chroot /mnt
+rm /root/arch/chroot
 # Run the chroot script in the new system through chroot 
 arch-chroot /mnt ./chroot
+# Move remaining installation files to user home directory
+mkdir /root/tempfolder
+cp -a /root/arch/. /root/tempfolder
+rm /root/tempfolder/install /root/tempfolder/README.md
+cp -a /root/tempfolder/. /mnt/home/$username
+rm -r /root/arch /root/tempfolder
 # Unmount and reboot
 umount -a
 reboot
