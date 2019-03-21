@@ -4,7 +4,7 @@
 
 **Boot into the arch install media and run the following commands.**
 
-wifi-menu (for wifi)
+wifi-menu # For wifi
 
 pacman -Sy reflector git
 
