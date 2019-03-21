@@ -80,9 +80,26 @@ gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
 cat << EOT >> /home/$USER/postinstall
 #!/bin/bash
 echo "Press 'Enter' to continue"
+# Auto-Mount Settings
 gnome-disks
+# AutomaThemely Settings
+automathemely --manage
 read
-# Edit makepkg.conf to stop recompression and make installing software faster
+automathemely --update
+automathemely --restart
+automathemely
+# Autostart script to make automathemely run everytime (normal way showed the gui)
+cat << EOF >> /home/$USER/.config/autostart/automathemelyrunner.desktop
+[Desktop Entry]
+Name=automathemelyrunner
+Type=Application
+Exec=python3 /usr/lib/python3.7/site-packages/automathemely/bin/autothscheduler.py
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
+chmod +x /home/$USER/.config/autostart/automathemelyrunner.desktop
+# Edit makepkg.conf to stop recompression and make software installation faster
 sudo sed -i '144s/.xz//' /etc/makepkg.conf
 # Install grub theme
 wget -O - https://github.com/shvchk/poly-light/raw/master/install.sh | bash
