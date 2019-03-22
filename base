@@ -9,45 +9,7 @@ ls /sys/firmware/efi/efivars
 echo
 echo "Press 'Ctrl+c' to exit OR 'Enter' to continue"
 read
-# Update system clock
-timedatectl set-ntp true
-# List & Create Partitions
-fdisk -l && echo && lsblk && echo
-echo "cfdisk" && read && cfdisk
-fdisk -l && echo && lsblk && echo
-# Confirm disk partitions
-echo "Press 'Ctrl+c' to exit OR 'Enter' to continue"
-read
-# Input values for: efi partition | root partition | bootloader id | hostname | username 
-read -p "efipartition (/dev/sdax) = " efipartition
-echo
-read -p "ospartition (/dev/sdax) = " ospartition
-echo
-read -p "Enter your preferred bootloader-id: " bootloaderid
-echo
-read -p "Enter your hostname: " hostname
-echo
-read -p "Enter your preferred username: " username
-echo
-# Format efi partition as fat32
-mkfs.fat -F32 $efipartition
-echo
-# Format root partition as ext4
-mkfs.ext4 $ospartition
-echo
-# Mount root partition to /mnt
-mount $ospartition /mnt
-# Install the base and base-devel package groups using pacstrap
-pacstrap /mnt base base-devel
-echo
-# Generate fstab
-genfstab -U /mnt >> /mnt/etc/fstab
-echo
-cat /mnt/etc/fstab
-echo
-#-------------------------------------------------------------------
-# Create chroot file: /root/arch/chroot OR /mnt/chroot
-#-------------------------------------------------------------------
+#
 cat <<EOT > /root/arch/chroot
 #!/bin/bash
 # Check if script is being run as root
@@ -105,18 +67,6 @@ sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
 # Exit chroot
 exit
 EOT
-#-------------------------------------------------------------------
-# Make /mnt/chroot executable
-#####chmod +x /mnt/chroot
 #
-# Run /mnt/chroot
-#####arch-chroot /mnt ./chroot
-#
-# Unmount all (some errors expected)
-#####umount -a
-#
-# Remove github folder
-#####rm -r /root/arch
-#
-# Reboot
-#####reboot
+# Make /root/arch/chroot executable
+chmod +x /root/arch/chroot
