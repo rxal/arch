@@ -10,7 +10,7 @@ echo
 echo "Press 'Ctrl+c' to exit OR 'Enter' to continue"
 read
 #
-cat <<EOT >> /root/arch/chroot
+cat << EOT >> /root/arch/chroot
 #!/bin/bash
 # Check if script is being run as root
 if [[ $EUID -ne 0 ]]; then
@@ -67,6 +67,6 @@ sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
 # Exit chroot
 exit
 EOT
-#
+#-------------------------------------------------------------------
 # Make /root/arch/chroot executable
 chmod +x /root/arch/chroot
