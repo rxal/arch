@@ -48,7 +48,7 @@ echo
 #-------------------------------------------------------------------
 # Create chroot file: /root/arch/chroot OR /mnt/chroot
 #-------------------------------------------------------------------
-cat <<EOT > /mnt/chroot
+cat <<EOT > /root/arch/chroot
 #!/bin/bash
 # Check if script is being run as root
 if [[ $EUID -ne 0 ]]; then
@@ -107,16 +107,16 @@ exit
 EOT
 #-------------------------------------------------------------------
 # Make /mnt/chroot executable
-chmod +x /mnt/chroot
+#####chmod +x /mnt/chroot
 #
 # Run /mnt/chroot
-arch-chroot /mnt ./chroot
+#####arch-chroot /mnt ./chroot
 #
 # Unmount all (some errors expected)
-umount -a
+#####umount -a
 #
 # Remove github folder
-rm -r /root/arch
+#####rm -r /root/arch
 #
 # Reboot
-reboot
+#####reboot
