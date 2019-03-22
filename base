@@ -48,7 +48,7 @@ echo
 #-------------------------------------------------------------------
 # Create chroot file: /root/arch/chroot OR /mnt/chroot
 #-------------------------------------------------------------------
-cat <<CHROOT > /mnt/chroot
+cat <<EOT > /mnt/chroot
 #!/bin/bash
 # Check if script is being run as root
 if [[ $EUID -ne 0 ]]; then
@@ -104,7 +104,7 @@ echo "Uncommenting the wheel group line."
 sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
 # Exit chroot
 exit
-CHROOT
+EOT
 #-------------------------------------------------------------------
 # Make /mnt/chroot executable
 chmod +x /mnt/chroot
