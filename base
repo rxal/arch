@@ -60,9 +60,11 @@ ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
 # Generate /etc/adjtime
 hwclock --systohc --utc
 # Uncomment locale
+echo "Setting locale: en_US.UTF-8 UTF-8 for American-English."
 sed -i '/#en_US.UTF-8 UTF-8/s/^#//g' /etc/locale.gen
+echo
 # Set the LANG variable
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
+echo "LANG=en_US.UTF-8"  > /etc/locale.conf
 # Generate locale
 locale-gen
 echo
@@ -83,7 +85,7 @@ echo
 # Install grub to /boot/efi
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=$bootloaderid
 echo
-# Change grub timeout to 0
+# Change grub timeout to 3
 sudo sed -i '4s/5/0/' /etc/default/grub
 # Generate grub config file
 sudo grub-mkconfig -o /boot/grub/grub.cfg
@@ -94,11 +96,11 @@ systemctl enable NetworkManager
 useradd -m -g users -G wheel -s /bin/bash $username
 echo
 # Input user password
-echo "Enter user password"
+echo Enter your user password.
 passwd $username
 echo
 # Set admin priviliges
-echo "Uncommenting the wheel group line"
+echo "Uncommenting the wheel group line."
 sudo sed -i '/# %wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
 # Exit chroot
 exit
