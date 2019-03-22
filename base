@@ -1,9 +1,4 @@
 #!/bin/bash
-# Check if user is root
-if [[ $EUID -ne 0 ]]; then
-    echo "You must be a root user to run this." 2>&1
-    exit 1
-fi
 # Confirm if system is booted in efi mode
 ls /sys/firmware/efi/efivars
 echo
